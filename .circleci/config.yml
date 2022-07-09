@@ -102,22 +102,31 @@ jobs:
             npm install
             npm run test
             
-#   scan-frontend:
-#     executor:
-#       # Docker image here
-#     steps:
-#       # Checkout code from git
-#       # Restore from cache
-#       # Your job code here
+  scan-frontend:
+    executor: node
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [frontend-build]
+      - run:
+          name: Scan front-end for vulnarabilities
+          command: |
+            cd frontend
+            npm install
+            npm audit --audit-level=critical
 
-#   scan-backend:
-#     executor:
-#       # Docker image here
-#     steps:
-#       # Checkout code from git
-#       # Restore from cache
-#       # Your job code here
-
+  scan-backend:
+    executor: node
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [backend-build]
+      - run:
+          name: Scan back-end for vulnarabilities
+          command: |
+            cd backend
+            npm install
+            npm audit --audit-level=critical
 #   deploy-infrastructure:
 #     executor:
 #       # Docker image here that supports AWS CLI
@@ -293,10 +302,10 @@ workflows:
           requires: [build-frontend]
       - test-backend:
           requires: [build-backend]
-      # - scan-backend:
-      #     requires: [build-backend]
-      # - scan-frontend:
-      #     requires: [build-frontend]
+      - scan-backend:
+          requires: [build-backend]
+      - scan-frontend:
+          requires: [build-frontend]
       # - deploy-infrastructure:
       #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
       #     filters:
