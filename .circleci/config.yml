@@ -114,7 +114,6 @@ jobs:
             cd frontend
             npm install
             npm audit fix --audit-level=critical
-            npm audit --audit-level=critical
 
   scan-backend:
     executor: node
@@ -128,7 +127,6 @@ jobs:
             cd backend
             npm install
             npm audit fix --audit-level=critical
-            npm audit --audit-level=critical
 #   deploy-infrastructure:
 #     executor:
 #       # Docker image here that supports AWS CLI
