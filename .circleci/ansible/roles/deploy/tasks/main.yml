@@ -1,0 +1,30 @@
+--- 
+- name: Show remote environment 
+  shell: env 
+
+- name: Synchronize backend files 
+  become: true
+  synchronize: 
+    src: ../../backend 
+    dest: /home/ubuntu/udapeople
+    recursive: true 
+
+- name: Build backend 
+  become: true
+  shell: |
+    cd /home/ubuntu/udapeople/backend
+    npm install 
+    npm run build
+
+- name: Stop all running processes
+  shell: |
+    pm2 stop all
+  ignore_errors: true
+
+- name: Start server 
+  become: true
+  shell: |
+    cd /home/ubuntu/udapeople/backend 
+    pm2 start npm -- start
+  environment: 
+    ENVIRONMENT: production

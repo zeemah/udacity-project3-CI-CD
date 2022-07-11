@@ -1,2 +1,2 @@
 URL01: https://github.com/zeemah/udacity-project3-CI-CD.git
-URL02: 
+URL02: Provide the public URL for your S3 Bucket (aka, your front-end)
