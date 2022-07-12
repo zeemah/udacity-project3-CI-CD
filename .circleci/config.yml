@@ -231,7 +231,7 @@ jobs:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
  
   deploy-frontend:
-    executor: aws
+    executor: python
     steps:
       - checkout
       - attach_workspace:
