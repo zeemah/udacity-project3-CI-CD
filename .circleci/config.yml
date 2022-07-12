@@ -37,14 +37,13 @@ commands:
           name: Revert migrations
           when: on_fail 
           command: |
-            # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS = 1
-            if(( $SUCCESS==1 )); 
+             SUCCESS=$(curl --insecure https://kvdb.io/Y2KNsbnjNygvrpLpYzaqxu/migration_<< parameters.workflow_id >>)
+            echo $SUCCESS
+            if(( $SUCCESS == 1 )); 
             then
-            #  cd ~/project/backend
-            #  npm install
-            #  Add revert code here. You can find this in the Getting Started section.
-              exit 1
+              cd backend
+              # npm install
+              npm run migration:revert
             fi
             
 jobs:
@@ -180,16 +179,16 @@ jobs:
           fingerprints: ["05:56:9d:43:0b:d8:ab:4b:1d:24:c2:60:04:a0:65:0d"]
       - attach_workspace:
           at: ~/
+      - run: 
+          name: Access inventory.txt
+          command: cat .circleci/ansible/inventory.txt 
       - run:
           name: Install dependencies
           command: |
             apk add --update ansible
             ansible --version
             pip install awscli
-      - run: 
-          name: Access inventory.txt 
-          command: |
-            cat .circleci/ansible/inventory.txt
+            aws --version
       - run: 
           name: Configure server
           command: | 
@@ -202,10 +201,15 @@ jobs:
     executor: node
     steps:
       - checkout
+      - attach_workspace:
+          at: ~/.circleci/ansible/inventory.txt
       - run:
           name: Install dependencies
           command: |
-            apk add --update --no-cache tar gzip nodejs npm aws-cli curl
+            sudo apt-get update && sudo apt-get install -yy less
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
       - restore_cache:
           keys: ['backend-build']
       - run:
