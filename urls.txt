@@ -1,2 +1,2 @@
 URL01: https://github.com/zeemah/udacity-project3-CI-CD.git
-URL02: http://udapeople-3f6f75a.s3-website-us-east-1.amazonaws.com/#/employees
+URL02: http://udapeople-639f5a5.s3-website-us-east-1.amazonaws.com
