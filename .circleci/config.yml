@@ -179,8 +179,8 @@ jobs:
           paths:
             - project/.circleci/ansible/inventory.txt
             - project/backend-url.txt
-      # - destroy-environment:
-      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}    
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}    
 
   configure-infrastructure:
     executor: python
@@ -211,8 +211,8 @@ jobs:
           root: ~/
           paths:
             - project/backend
-      # - destroy-environment:
-      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
       
   run-migrations:
     executor: python
@@ -242,10 +242,10 @@ jobs:
             then
               curl https://kvdb.io/sNgEqpA1NSViGZCLbMAKP/migration_${CIRCLE_WORKFLOW_ID:0:7} -d '1' 
             fi
-      # - destroy-environment:
-      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-      # - revert-migrations:
-      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert-migrations:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
  
   deploy-frontend:
     executor: python
@@ -277,10 +277,10 @@ jobs:
             npm run build 
             tar -czvf frontend-artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive 
-      # - destroy-environment:
-      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-      # - revert-migrations:
-      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert-migrations:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   deploy-backend:
     executor: python
@@ -294,20 +294,6 @@ jobs:
           name: Install dependencies
           command: |
             apk add --update --no-cache tar gzip nodejs npm tree aws-cli ansible 
-      # - run: 
-      #     name: Set environment variables 
-      #     command: |
-      #       echo ENVIRONMENT=production > "backend/.env"
-      #       echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> "backend/.env"
-      #       echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> "backend/.env"
-      #       echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> "backend/.env"
-      #       echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> "backend/.env"
-      #       echo TYPEORM_HOST=$TYPEORM_HOST >> "backend/.env"
-      #       echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
-      #       echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"
-      #       echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "backend/.env"
-      #       echo TYPEORM_PORT=$TYPEORM_PORT >> "backend/.env"
-      #       cat backend/.env
       - run:
           name: Deploy backend
           command: |
@@ -323,10 +309,10 @@ jobs:
             echo "Verifying contents of the inventory.txt file...$(tail -1 inventory.txt)"
             cat inventory.txt 
             ansible-playbook -i inventory.txt deploy-backend.yml
-      # - destroy-environment: 
-      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-      # - revert-migrations: 
-      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - destroy-environment: 
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert-migrations: 
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   smoke-test:
     executor: python
@@ -367,10 +353,10 @@ jobs:
               return 1
             fi
       # On failure 
-      # - destroy-environment: 
-      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-      # - revert-migrations: 
-      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - destroy-environment: 
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert-migrations: 
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   cloudfront-update:
     executor: aws
@@ -408,12 +394,15 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Stack cleanup
+          name: Get old stack workflow id
           command: |
             echo <<pipeline.parameters.workflow_id>>
             export OldWorkflowID=<<pipeline.parameters.workflow_id>>
             echo OldWorkflowID: "${OldWorkflowID}"
             echo CIRCLE_WORKFLOW_ID: ${CIRCLE_WORKFLOW_ID:0:7}
+      - run:
+          name: Remove old stack files
+          command: | 
             export STACKS=$(aws cloudformation list-stacks \
               --query "StackSummaries[*].StackName" \
               --stack-status-filter CREATE_COMPLETE --no-paginate --output text)
