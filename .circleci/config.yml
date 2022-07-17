@@ -168,8 +168,8 @@ jobs:
           paths:
             - project/.circleci/ansible/inventory.txt
             - project/backend-url.txt
-      - destroy-environment:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}    
+      # - destroy-environment:
+      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}    
 
   configure-infrastructure:
     executor: python
@@ -194,8 +194,8 @@ jobs:
           command: | 
             cd .circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml
-      - destroy-environment:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      # - destroy-environment:
+      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
       
   run-migrations:
     executor: python
@@ -225,10 +225,10 @@ jobs:
             then
               curl https://kvdb.io/sNgEqpA1NSViGZCLbMAKP/migration_${CIRCLE_WORKFLOW_ID:0:7} -d '1'
             fi
-      - destroy-environment:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-      - revert-migrations:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      # - destroy-environment:
+      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      # - revert-migrations:
+      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
  
   deploy-frontend:
     executor: python
@@ -245,9 +245,13 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            export API_URL=$(cat backend-url.txt)
+             export BACKEND_IP=$(aws ec2 describe-instances \
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --filters Name=tag:aws:cloudformation:stack-name,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7} \
+            --output text)
+            export API_URL="http://${BACKEND_IP}:3030"
             echo "API_URL = ${API_URL}"
-            echo "API_URL=${API_URL}" >> frontend/.env 
+            echo "API_URL=http://${BACKEND_IP}:3030" >> frontend/.env
             cat frontend/.env
       - run:
           name: Deploy frontend objects
@@ -258,10 +262,10 @@ jobs:
             npm run build 
             tar -czvf frontend-artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive 
-      - destroy-environment:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-      - revert-migrations:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      # - destroy-environment:
+      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      # - revert-migrations:
+      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   deploy-backend:
     executor: python
@@ -303,10 +307,10 @@ jobs:
             echo "Verifying contents of the inventory.txt file"
             cat inventory.txt 
             ansible-playbook -i inventory.txt deploy-backend.yml
-      - destroy-environment: 
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-      - revert-migrations: 
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      # - destroy-environment: 
+      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      # - revert-migrations: 
+      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   smoke-test:
     executor: python
@@ -349,10 +353,10 @@ jobs:
               return 1
             fi
       # On failure 
-      - destroy-environment: 
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-      - revert-migrations: 
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      # - destroy-environment: 
+      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      # - revert-migrations: 
+      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   cloudfront-update:
     executor: aws
@@ -372,10 +376,10 @@ jobs:
               --stack-name InitialStack \
               --parameter-overrides WorkflowID="udapeople-${CIRCLE_WORKFLOW_ID:0:7}" \
               --tags project=udapeople
-      - destroy-environment:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7} 
-      - revert-migrations:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7} 
+      # - destroy-environment:
+      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7} 
+      # - revert-migrations:
+          # workflow_id: ${CIRCLE_WORKFLOW_ID:0:7} 
   cleanup:
     executor: aws
     steps:
