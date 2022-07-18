@@ -191,7 +191,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --update --no-cache tar gzip ansible awscli
+            apk add --update --no-cache tar gzip ansible aws-cli
            
       - attach_workspace:
           at: ~/
@@ -441,7 +441,8 @@ workflows:
           requires: 
             - deploy-infrastructure
       - run-migrations:
-          requires: [configure-infrastructure]
+          requires: 
+            - configure-infrastructure
       # - deploy-frontend:
       #     requires: [run-migrations]
       # - deploy-backend:
