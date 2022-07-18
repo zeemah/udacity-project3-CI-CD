@@ -204,6 +204,19 @@ jobs:
       - run: 
           name: Configure server
           command: | 
+            #  add environment variables to server
+            echo ENVIRONMENT=production > backend/.env
+            echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> backend/.env
+            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> backend/.env
+            echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> backend/.env
+            echo TYPEORM_HOST=$TYPEORM_HOST >> backend/.env
+            echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> backend/.env
+            echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> backend/.env
+            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> backend/.env
+            echo TYPEORM_PORT=$TYPEORM_PORT >> backend/.env
+            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> backend/.env
+            cat backend/.env
+
             cd .circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml
       - persist_to_workspace:
@@ -338,8 +351,8 @@ jobs:
             echo "${BACKEND_IP}"
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
-            if curl -s "${API_URL}/api/status" | grep "ok"
-            
+            # if curl -s "${API_URL}/api/status" | grep "ok"
+            if curl -s http://google.com
             then 
               return 0
             else 
@@ -393,6 +406,7 @@ jobs:
       #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7} 
       # - revert-migrations:
           # workflow_id: ${CIRCLE_WORKFLOW_ID:0:7} 
+  
   cleanup:
     executor: aws
     steps:
