@@ -111,34 +111,31 @@ jobs:
             npm install
             npm run test
             
-  # scan-frontend:
-  #   executor: node
-  #   steps:
-  #     - checkout
-  #     - restore_cache:
-  #         keys: [frontend-build]
-  #     - run:
-  #         name: Scan front-end for vulnarabilities
-  #         command: |
-  #           cd frontend
-  #           npm install
-  #           npm audit fix --audit-level=critical
+  scan-frontend:
+    executor: node
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [frontend-build]
+      - run:
+          name: Scan front-end for vulnarabilities
+          command: |
+            cd frontend
+            npm install
+            npm audit fix --audit-level=critical
 
-  # scan-backend:
-  #   executor: node
-  #   steps:
-  #     - checkout
-  #     - restore_cache:
-  #         keys: [backend-build]
-  #     - run:
-  #         name: Scan back-end for vulnarabilities
-  #         command: |
-  #           cd backend
-  #           npm install
-  #           npm update mkdirp --depth 6
-  #           npm install --save-dev webpack@5.73.0
-  #           npm audit fix --audit-level=critical --force
-  #           npm audit --audit-level=critical
+  scan-backend:
+    executor: node
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [backend-build]
+      - run:
+          name: Scan back-end for vulnarabilities
+          command: |
+            cd backend
+            npm install
+            npm audit --audit-level=critical
   
   # deploy-infrastructure:
   #   executor: aws
@@ -424,12 +421,12 @@ workflows:
       - test-backend:
           requires: 
             - build-backend
-      # - scan-backend:
-      #     requires: 
-      #       - build-backend
-      # - scan-frontend:
-      #     requires: 
-      #       - build-frontend
+      - scan-backend:
+          requires: 
+            - build-backend
+      - scan-frontend:
+          requires: 
+            - build-frontend
       # - deploy-infrastructure:
       #     requires: 
       #     - test-frontend 
